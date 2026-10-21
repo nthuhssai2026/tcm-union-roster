@@ -97,6 +97,21 @@ td.note{color:var(--muted);font-size:13px;min-width:200px}
 .sources{font-size:13px;color:var(--muted);display:grid;gap:4px}
 .sources a{color:var(--jade);word-break:break-all}
 details summary{cursor:pointer;font-weight:600}
+td.ck{width:44px;text-align:center;padding-inline:6px}
+td.ck input,th.ck input{width:18px;height:18px;accent-color:var(--jade);cursor:pointer;margin:2px 0 0}
+th.ck{width:44px;text-align:center;padding-inline:6px}
+tr.done td{background:color-mix(in srgb,var(--jade-soft) 50%,var(--panel))}
+tr.done td.name button{color:var(--jade)}
+.checkbar{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:10px 12px}
+.checkbar .prog{font-variant-numeric:tabular-nums;font-size:14px;min-width:120px}
+.checkbar .prog b{font-size:18px;color:var(--jade)}
+.pbar{flex:1 1 160px;height:8px;border-radius:4px;background:var(--line);overflow:hidden;min-width:120px}
+.pbar span{display:block;height:100%;background:var(--jade)}
+.act{all:unset;cursor:pointer;font-size:13px;padding:4px 11px;border:1px solid var(--line);border-radius:6px;background:var(--bg)}
+.act:hover{border-color:var(--jade)}
+.act.warn{color:var(--seal);border-color:var(--seal)}
+.toast{font-size:13px;color:var(--jade)}
+nav.terms .ckc{font-size:11.5px;color:var(--jade);font-variant-numeric:tabular-nums;margin-left:4px}
 footer{font-size:12.5px;color:var(--muted);border-top:1px solid var(--line);padding-top:12px}
 @media (max-width:820px){
   .layout{grid-template-columns:1fr}
@@ -154,14 +169,19 @@ const esc = s => String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&g
 const srcLink = s => esc(s).replace(/〔?([SE]\d+)〕?/g,(m,c)=>`<a href="#src" data-src="${c}" style="color:var(--jade)">${m}</a>`);
 
 const nav = document.getElementById('nav'), main = document.getElementById('main');
-let current = 0, filter = 'all';
+let current = 0, filter = 'all', ckfilter = 'all', armed = false;
+let CK = {};
+try{ CK = JSON.parse(localStorage.getItem('tm_checks')||'{}')||{}; }catch(e){ CK = {}; }
+const keyOf = (t,r) => t.i+'|'+r[0]+'|'+r[1];
+const saveCK = () => { try{ localStorage.setItem('tm_checks', JSON.stringify(CK)); }catch(e){} };
+const doneIn = t => t.rows.filter(r=>CK[keyOf(t,r)]).length;
 
 function renderNav(){
   const groups = [['現行與近屆',t=>/^第十/.test(t.short)],['第二至九屆',t=>/^第[二三四五六七八九]屆/.test(t.short)],['改制前（民國 64–81 年）',t=>/^改制前/.test(t.short)]];
   let html = `<button data-view="pres" aria-current="${current==='pres'}"><span>歷任理事長</span><span class="pres"></span></button>`;
   for (const [g,fn] of groups){
     html += `<div class="grp">${g}</div>`;
-    for (const t of terms.filter(fn)) html += `<button data-term="${t.i}" aria-current="${current===t.i}"><span><i class="dot" style="background:${statusColor(t.status)}"></i>${esc(t.short)}</span><span class="pres">${esc(t.pres)}</span></button>`;
+    for (const t of terms.filter(fn)) html += `<button data-term="${t.i}" aria-current="${current===t.i}"><span><i class="dot" style="background:${statusColor(t.status)}"></i>${esc(t.short)}</span><span class="pres">${esc(t.pres)}${doneIn(t)?`<span class="ckc">${doneIn(t)}/${t.rows.length}</span>`:''}</span></button>`;
   }
   html += `<div class="grp">附錄</div><button data-view="sources" aria-current="${current==='sources'}"><span>資料來源</span><span class="pres"></span></button>`;
   nav.innerHTML = html;
@@ -177,13 +197,15 @@ function pathBar(rows){
 
 function renderTerm(i){
   const t = terms[i];
-  const rows = t.rows.filter(r=>filter==='all'||pathKey(r[3])===filter);
+  const rows = t.rows.filter(r=>(filter==='all'||pathKey(r[3])===filter) && (ckfilter==='all' || (ckfilter==='done') === !!CK[keyOf(t,r)]));
+  const done = doneIn(t), total = t.rows.length;
   let prevRole = null;
   const body = rows.map(r=>{
     const brk = prevRole!==null && r[0]!==prevRole && !r[0].startsWith(prevRole); prevRole=r[0];
     const edu = r[2]==='待查' ? '<span class="pend">待查</span>' : r[2].split('／').map(x=>`<div>${srcLink(x)}</div>`).join('');
     const pk = pathKey(r[3]);
-    return `<tr class="${brk?'rolebreak':''}"><td class="role">${esc(r[0])}</td><td class="name"><button data-person="${esc(r[1])}">${esc(r[1])}</button></td><td class="edu">${edu}</td><td><span class="chip p-${pk==='other'?'other':pk}">${esc(r[3])}</span></td><td class="note">${srcLink(r[4]||'')}</td></tr>`;
+    const k = keyOf(t,r), on = !!CK[k];
+    return `<tr class="${brk?'rolebreak':''}${on?' done':''}"><td class="ck"><input type="checkbox" data-ck="${esc(k)}" ${on?'checked':''} aria-label="勾選 ${esc(r[1])}"></td><td class="role">${esc(r[0])}</td><td class="name"><button data-person="${esc(r[1])}">${esc(r[1])}</button></td><td class="edu">${edu}</td><td><span class="chip p-${pk==='other'?'other':pk}">${esc(r[3])}</span></td><td class="note">${srcLink(r[4]||'')}</td></tr>`;
   }).join('');
   const fbtn = ['all','中醫系','後中','特考','other','pend'].map(k=>`<button data-filter="${k}" aria-pressed="${filter===k}">${k==='all'?'全部':pathLabel[k]}</button>`).join('');
   main.innerHTML = `<section class="termhead">
@@ -192,9 +214,18 @@ function renderTerm(i){
       <div class="note">${esc(t.note)}</div>
     </section>
     ${t.rows.length>3?pathBar(t.rows):''}
+    <div class="checkbar">
+      <span class="prog">已勾 <b>${done}</b> / ${total}</span>
+      <span class="pbar"><span style="width:${total?done/total*100:0}%"></span></span>
+      <span class="filters" aria-label="依勾選狀態篩選">${[['all','全部'],['done','已勾'],['todo','未勾']].map(([k,l])=>`<button data-ckf="${k}" aria-pressed="${ckfilter===k}">${l}</button>`).join('')}</span>
+      <button class="act" data-bulk="all">全部勾選</button>
+      <button class="act" data-copy>複製已勾名單</button>
+      <button class="act ${armed?'warn':''}" data-bulk="clear">${armed?'再按一次確認清除':'清除本屆勾選'}</button>
+      <span class="toast" id="toast" aria-live="polite"></span>
+    </div>
     ${t.rows.length>3?`<div class="filters" aria-label="依取得途徑篩選">${fbtn}</div>`:''}
-    <div class="tablewrap"><table><thead><tr><th>職位</th><th>姓名</th><th>學歷</th><th>取得途徑</th><th>備註</th></tr></thead><tbody>${body||'<tr><td colspan="5" class="pend">此篩選下沒有人。</td></tr>'}</tbody></table></div>
-    <p class="count">點姓名可看此人歷屆任職。</p>`;
+    <div class="tablewrap"><table><thead><tr><th class="ck" title="勾選">✓</th><th>職位</th><th>姓名</th><th>學歷</th><th>取得途徑</th><th>備註</th></tr></thead><tbody>${body||'<tr><td colspan="6" class="pend">此篩選下沒有人。</td></tr>'}</tbody></table></div>
+    <p class="count">點姓名可看此人歷屆任職。勾選只存在這個瀏覽器，換電腦或清除瀏覽資料後會消失。</p>`;
 }
 
 function renderPres(){
@@ -242,11 +273,31 @@ function search(q){
 document.addEventListener('click', e=>{
   const b = e.target.closest('button,[data-src]'); if(!b) return;
   if(b.dataset.src){ e.preventDefault(); show('sources'); return; }
-  if(b.dataset.term!==undefined){ document.getElementById('q').value=''; filter='all'; show(+b.dataset.term); window.scrollTo({top:0}); }
+  if(b.dataset.term!==undefined){ document.getElementById('q').value=''; filter='all'; ckfilter='all'; armed=false; show(+b.dataset.term); window.scrollTo({top:0}); }
   else if(b.dataset.view){ document.getElementById('q').value=''; show(b.dataset.view); }
   else if(b.dataset.filter){ filter=b.dataset.filter; renderTerm(current); }
   else if(b.dataset.person){ main.innerHTML = personPanel(b.dataset.person); window.scrollTo({top:0}); }
   else if(b.hasAttribute('data-close')){ show(current); }
+});
+document.addEventListener('change', e=>{
+  const c = e.target.closest('input[data-ck]'); if(!c) return;
+  if(c.checked) CK[c.dataset.ck]=1; else delete CK[c.dataset.ck];
+  saveCK(); armed=false;
+  const sy = window.scrollY; renderTerm(current); renderNav(); window.scrollTo({top:sy});
+});
+document.addEventListener('click', async e=>{
+  const b = e.target.closest('button'); if(!b || typeof current!=='number') return;
+  const t = terms[current];
+  if(b.dataset.ckf){ ckfilter=b.dataset.ckf; armed=false; renderTerm(current); }
+  else if(b.dataset.bulk==='all'){ t.rows.forEach(r=>CK[keyOf(t,r)]=1); saveCK(); armed=false; renderTerm(current); renderNav(); }
+  else if(b.dataset.bulk==='clear'){ if(!armed){ armed=true; renderTerm(current); return; } t.rows.forEach(r=>delete CK[keyOf(t,r)]); saveCK(); armed=false; renderTerm(current); renderNav(); }
+  else if(b.hasAttribute('data-copy')){
+    const txt = t.rows.filter(r=>CK[keyOf(t,r)]).map(r=>r[0]+'\t'+r[1]+'\t'+r[2].replace(/／/g,'；')+'\t'+r[3]).join('\n');
+    const toast = document.getElementById('toast');
+    if(!txt){ toast.textContent='本屆還沒有勾選。'; return; }
+    try{ await navigator.clipboard.writeText(t.h+'\n'+txt); toast.textContent='已複製，可貼到 Excel 或 Word。'; }
+    catch(err){ toast.textContent='瀏覽器不允許自動複製，請改用「已勾」篩選後手動選取表格。'; }
+  }
 });
 document.getElementById('q').addEventListener('input', e=>search(e.target.value));
 
