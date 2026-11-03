@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>全聯會理監事資格回報</title>
+<title>全聯會理監事推薦訪談</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@600;800&family=Noto+Sans+TC:wght@400;500;700&display=swap">
@@ -138,6 +138,35 @@ nav.terms .ckc{font-size:11.5px;color:var(--ochre);font-variant-numeric:tabular-
 .modal .gatebox{max-width:480px}
 .okmark{color:var(--jade);font-weight:700}
 .prog2{height:8px;border-radius:4px;background:var(--line);overflow:hidden}.prog2 span{display:block;height:100%;background:var(--jade)}
+.radios{display:flex;flex-wrap:wrap;gap:6px}
+.radios label{display:inline-flex;align-items:center;gap:6px;padding:5px 12px;border:1px solid var(--line);border-radius:6px;cursor:pointer;font-size:14px;background:var(--bg);white-space:nowrap}
+.radios input{width:16px;height:16px;accent-color:var(--jade);margin:0;cursor:pointer}
+.radios label:has(input:checked){border-color:var(--jade);background:var(--jade-soft);color:var(--jade);font-weight:600}
+.radios label.unk:has(input:checked){border-color:var(--muted);background:var(--bg);color:var(--muted)}
+.radios input:focus-visible{outline:2px solid var(--jade);outline-offset:2px}
+tr.todo td.pname{box-shadow:inset 4px 0 0 var(--seal)}
+tr.todo{background:color-mix(in srgb,var(--seal-soft) 35%,var(--panel))}
+tr.flash td{animation:fl 1.2s ease-out}
+@keyframes fl{from{background:var(--ochre-soft)}to{background:transparent}}
+td.pname{font-weight:700;white-space:nowrap;font-size:15px}
+td.choice{min-width:330px}
+td.terms{font-size:13px;color:var(--muted);min-width:180px}
+td.pedu{font-size:13px;min-width:200px}
+.idx{font-variant-numeric:tabular-nums;color:var(--muted);font-size:12.5px;width:40px}
+.taskhead{display:grid;gap:10px}
+.groupbar{display:flex;flex-wrap:wrap;gap:6px}
+.groupbar button{all:unset;cursor:pointer;font-size:13px;padding:4px 10px;border:1px solid var(--line);border-radius:6px;background:var(--panel);font-variant-numeric:tabular-nums}
+.groupbar button[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.groupbar button.full{border-color:var(--jade);color:var(--jade)}
+.groupbar button[aria-pressed="true"].full{color:var(--bg)}
+.navtask{font-weight:700}
+.ckline{display:inline-flex;align-items:center;gap:8px;padding:5px 12px;border:1px solid var(--line);border-radius:6px;cursor:pointer;background:var(--bg);font-size:14px;white-space:nowrap}
+.ckline input{width:18px;height:18px;accent-color:var(--jade);margin:0;cursor:pointer}
+.ckline:has(input:checked){border-color:var(--jade);background:var(--jade-soft);color:var(--jade);font-weight:600}
+tr.rec td{background:color-mix(in srgb,var(--jade-soft) 40%,var(--panel))}
+td.choice{min-width:250px}
+.revbtn{all:unset;cursor:pointer;font-size:14px;font-weight:600;padding:7px 14px;border-radius:6px;border:1px solid var(--jade);color:var(--jade);background:var(--bg)}
+.revbtn.on{background:var(--jade);color:var(--bg)}
 footer{font-size:12.5px;color:var(--muted);border-top:1px solid var(--line);padding-top:12px}
 @media (max-width:820px){
   .layout{grid-template-columns:1fr}
@@ -183,10 +212,10 @@ footer{font-size:12.5px;color:var(--muted);border-top:1px solid var(--line);padd
 
 <div id="gate" hidden>
   <div class="gatebox">
-    <div class="eyebrow">理監事資格回報</div>
-    <h2>中醫師公會全國聯合會理監事：中醫師資格取得途徑回報</h2>
-    <p>本研究整理全聯會歷屆理監事名單，想釐清每位理監事是經由「特考」還是「大學學歷」（中醫系或學士後中醫）取得中醫師資格。請就您確知的人勾選，不確定的人留白即可。</p>
-    <p>請先填您的姓名，回報會連同姓名一併送出，方便研究團隊需要時向您確認。</p>
+    <div class="eyebrow">推薦訪談名單</div>
+    <h2>中醫師公會全國聯合會歷屆理監事：推薦訪談名單</h2>
+    <p>本研究整理了全聯會歷屆理監事共 235 位，想請您協助推薦適合訪談的人選。請逐組瀏覽名單，勾選您推薦的人（可附推薦理由或聯絡方式），每組看完按「本組已看完」，全部看完後一次送出。</p>
+    <p>請先填您的姓名，推薦會連同姓名一併送出，方便研究團隊需要時向您確認。</p>
     <label for="gname" style="font-weight:600">您的姓名</label>
     <input id="gname" maxlength="60" autocomplete="name" placeholder="例：王小明">
     <button class="primary" id="genter" disabled>確認進入 →</button>
@@ -215,7 +244,7 @@ let current = 0, filter = 'all', rfilter = 'all', mode = 'term', personName = ''
 let DB = null, USER = null, DL = null, MYID = null, CANW = null, IS_OWNER = false;
 let REP = {}, MINE = {}, dbState = 'init', gotMine = false, pendingRender = false;
 let writeChain = Promise.resolve();
-const OPTS = {exam:'特考', univ:'大學學歷'};
+const OPTS = {exam:'特考', univ:'大學學歷', unk:'不確定'};
 function agg(name){ let e=0,u=0; for(const id in REP){ const p=REP[id]&&REP[id].picks&&REP[id].picks[name]; if(p){ if(p.v==='exam')e++; else if(p.v==='univ')u++; } } return {e,u}; }
 const hasRep = n => !!MINE[n];
 const repCount = t => new Set(t.rows.filter(r=>hasRep(r[1])).map(r=>r[1])).size;
@@ -223,39 +252,47 @@ const peopleIn = t => new Set(t.rows.map(r=>r[1])).size;
 const FORM = 'https://docs.google.com/forms/d/e/1FAIpQLSfaIViJd_mE-dOjTR-BCx9f_RpwW207kyPU7bLiNojQr5hTFw/formResponse';
 const ENTRY = {name:'entry.1785902024', opt:'entry.1187970110', note:'entry.1123488959', who:'entry.71560696'};
 let WHO = '', SENT = {};
-try{ MINE = JSON.parse(localStorage.getItem('gf_ans')||'{}')||{}; SENT = JSON.parse(localStorage.getItem('gf_sent2')||'{}')||{}; WHO = localStorage.getItem('gf_who')||''; }catch(e){ MINE = {}; SENT = {}; }
-const saveLocal = () => { try{ localStorage.setItem('gf_ans', JSON.stringify(MINE)); localStorage.setItem('gf_sent2', JSON.stringify(SENT)); localStorage.setItem('gf_who', WHO); }catch(e){} };
+let REV = {};
+try{ MINE = JSON.parse(localStorage.getItem('rc_ans')||'{}')||{}; SENT = JSON.parse(localStorage.getItem('rc_sent')||'{}')||{}; REV = JSON.parse(localStorage.getItem('rc_rev')||'{}')||{}; WHO = localStorage.getItem('gf_who')||''; }catch(e){ MINE = {}; SENT = {}; REV = {}; }
+const saveLocal = () => { try{ localStorage.setItem('rc_ans', JSON.stringify(MINE)); localStorage.setItem('rc_sent', JSON.stringify(SENT)); localStorage.setItem('rc_rev', JSON.stringify(REV)); localStorage.setItem('gf_who', WHO); }catch(e){} };
 const canPick = () => true;
 const ALLP = [...new Set(terms.flatMap(t=>t.rows.map(r=>r[1])))];
-const sig = a => a ? a.v+'|'+(a.note||'') : '';
-const pendingList = () => Object.keys(MINE).filter(n=>sig(MINE[n])!==SENT[n]).concat(Object.keys(SENT).filter(n=>!MINE[n] && SENT[n]!=='撤回'));
-function repCell(n){
-  const my = MINE[n], done = my && SENT[n]===sig(my);
-  const btns = Object.entries(OPTS).map(([k,l])=>`<button class="opt${my&&my.v===k?' on':''}" data-pick="${k}" data-name="${esc(n)}" aria-pressed="${!!(my&&my.v===k)}">${l}</button>`).join('');
-  const st = my ? `<div class="tally">${done?'<span class="okmark">✓ 已送出</span>':'已選，尚未送出'}</div>` : (SENT[n]&&SENT[n]!=='撤回' ? '<div class="tally">已取消，送出後撤回</div>' : '');
-  const note = my ? `<input class="rnote" data-note="${esc(n)}" value="${esc(my.note||'')}" placeholder="補充（學校、年份等，可不填）" maxlength="200" aria-label="${esc(n)} 的補充說明">` : '';
-  return `<div class="opts">${btns}</div>${st}${note}`;
+const PINFO = {}; terms.forEach(t=>t.rows.forEach(r=>{ const p = PINFO[r[1]] || (PINFO[r[1]] = {first:t.i, terms:[], edu:r[2], path:r[3]}); p.terms.push(t.short.replace('改制前','前')+r[0].replace(/^(理事長|副理事長|常務理事|理事|監事會召集人|監事長|常務監事|監事|秘書長|副秘書長).*$/,'·$1')); }));
+const GROUPS = []; { const seen=new Set(); terms.forEach(t=>{ const ns=t.rows.map(r=>r[1]).filter(n=>!seen.has(n)); ns.forEach(n=>seen.add(n)); if(ns.length) GROUPS.push({label:t.short, names:[...new Set(ns)]}); }); }
+let gidx = 0, todoOnly = false;
+const sig = a => a ? '推薦|'+(a.note||'') : '';
+const pendingList = () => Object.keys(MINE).filter(n=>sig(MINE[n])!==SENT[n]).concat(Object.keys(SENT).filter(n=>n!=='__done' && !MINE[n] && SENT[n]!=='取消'));
+const recCount = () => Object.keys(MINE).length;
+const unreviewed = () => GROUPS.map((g,i)=>i).filter(i=>!REV[GROUPS[i].label]);
+function radioCell(n){
+  const my = MINE[n];
+  const st = my ? (SENT[n]===sig(my) ? '<div class="tally"><span class="okmark">✓ 已送出</span></div>' : '<div class="tally">已勾，尚未送出</div>') : (SENT[n] && SENT[n]!=='取消' ? '<div class="tally">已取消，送出後撤回</div>' : '');
+  const note = my ? `<input class="rnote" data-note="${esc(n)}" value="${esc(my.note||'')}" placeholder="推薦理由或聯絡方式（可不填）" maxlength="200" aria-label="${esc(n)} 的推薦說明">` : '';
+  return `<label class="ckline"><input type="checkbox" data-rec data-name="${esc(n)}" ${my?'checked':''} aria-label="推薦訪談 ${esc(n)}"><span>推薦訪談</span></label>${st}${note}`;
 }
+const repCell = radioCell;
 function repBar(t){
   const rc = t ? new Set(t.rows.filter(r=>MINE[r[1]]).map(r=>r[1])).size : 0, tot = t ? peopleIn(t) : 0;
-  return `<div class="repbar"><span class="msg">就您確知的人點「特考」或「大學學歷」，不確定就留白。再點一次可取消。本屆您已選 <b>${rc}</b> / ${tot} 人。全部選完後按頁面最下方的「送出回報」。</span>
+  return `<div class="repbar"><span class="msg">此頁為參考檢視，也可在這裡勾選（與「推薦訪談名單」同步）。本屆您已勾 <b>${rc}</b> / ${tot} 人。全部選完後按頁面最下方的「送出回報」。</span>
     <span class="filters" aria-label="依填答篩選">${[['all','全部'],['has','我已選'],['none','我未選']].map(([k,l])=>`<button data-rf="${k}" aria-pressed="${rfilter===k}">${l}</button>`).join('')}</span></div>`;
 }
 function renderTop(){
-  const filled = ALLP.filter(n=>MINE[n]).length, pend = pendingList().length;
+  const rc = recCount(), pend = pendingList().length, left = unreviewed().length;
   document.getElementById('whobar').innerHTML = WHO ? `<span>回報者：<b>${esc(WHO)}</b></span><button class="linkbtn" data-rename>更改姓名</button>` : '';
-  document.getElementById('stats').innerHTML = [['名單人數',ALLP.length],['已選',filled],['未選',ALLP.length-filled],['待送出',pend]].map(([l,v])=>`<div class="stat"><span>${l}</span><b>${v}</b></div>`).join('');
-  document.getElementById('submitbar').innerHTML = `<span class="sbmsg">${pend?`有 <b>${pend}</b> 筆選擇尚未送出。`:(filled?'所有選擇都已送出，可以關閉頁面。':'尚未選擇任何人。')}</span><button class="primary" data-submit ${pend?'':'disabled'}>送出回報 ↓</button>`;
+  document.getElementById('stats').innerHTML = [['名單人數',ALLP.length],['已勾推薦',rc],['已看完組數',`${GROUPS.length-left}/${GROUPS.length}`],['完成度',Math.floor((GROUPS.length-left)/GROUPS.length*100)+'%']].map(([l,v])=>`<div class="stat"><span>${l}</span><b>${v}</b></div>`).join('');
+  const sentAll = !pend && SENT.__done;
+  const msg = left ? `還有 <b style="color:var(--seal)">${left}</b> 組未看完，全部看完才能送出。` : (sentAll ? '回報已送出，可以關閉頁面。' : `${GROUPS.length} 組都已看完，共勾選 <b>${rc}</b> 人，可以送出。`);
+  document.getElementById('submitbar').innerHTML = `<span class="sbmsg">${msg}</span><span style="display:flex;gap:10px;flex-wrap:wrap">${left?'<button class="act" data-nexttodo>跳到下一組未看完 →</button>':''}<button class="primary" data-submit ${!left && !sentAll?'':'disabled'}>送出回報 ↓</button></span>`;
 }
 function buildCsv(rows){
   const q = v => { const x = String(v==null?'':v); return /[",\n]/.test(x) ? '"'+x.replace(/"/g,'""')+'"' : x; };
-  return '﻿' + [['理監事姓名','回報選項','補充','回報者','時間'], ...rows].map(r=>r.map(q).join(',')).join('\r\n');
+  return '﻿' + [['理監事姓名','回報內容','推薦說明','回報者','時間'], ...rows].map(r=>r.map(q).join(',')).join('\r\n');
 }
 function downloadCsv(rows){
   try{
     const blob = new Blob([buildCsv(rows)], {type:'text/csv;charset=utf-8'});
     const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
-    a.download = '理監事資格回報_' + (WHO||'回報者').replace(/[^\w一-龥]+/g,'_') + '_' + new Date().toISOString().slice(0,10) + '.csv';
+    a.download = '推薦訪談名單_' + (WHO||'回報者').replace(/[^\w一-龥]+/g,'_') + '_' + new Date().toISOString().slice(0,10) + '.csv';
     document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(a.href), 2000);
   }catch(e){}
 }
@@ -264,20 +301,24 @@ async function postOne(n, v, note){
   await fetch(FORM, {method:'POST', mode:'no-cors', body});
 }
 async function submitAll(){
-  const list = pendingList(); if(!list.length) return;
+  if(unreviewed().length) return;
+  const list = pendingList();
   const modal = document.getElementById('modal'); modal.hidden = false;
   const now = new Date().toLocaleString('zh-TW',{hour12:false});
-  const rows = []; let ok = 0, fail = 0;
+  const rows = []; let ok = 0, fail = 0; const total = list.length + 1;
+  const step = () => { modal.innerHTML = `<div class="gatebox"><h2>送出中…</h2><p>${ok+fail} / ${total}</p><div class="prog2"><span style="width:${(ok+fail)/total*100}%"></span></div></div>`; };
   for(const n of list){
-    const a = MINE[n], v = a ? OPTS[a.v] : '撤回', note = a ? (a.note||'') : '';
-    modal.innerHTML = `<div class="gatebox"><h2>送出中…</h2><p>${ok+fail} / ${list.length}</p><div class="prog2"><span style="width:${(ok+fail)/list.length*100}%"></span></div></div>`;
-    try{ await postOne(n, v, note); ok++; SENT[n] = a ? sig(a) : '撤回'; rows.push([n, v, note, WHO, now]); saveLocal(); }
-    catch(e){ fail++; }
-    await new Promise(r=>setTimeout(r,250));
+    step();
+    const a = MINE[n], v = a ? '推薦訪談' : '取消推薦', note = a ? (a.note||'') : '';
+    try{ await postOne(n, v, note); ok++; SENT[n] = a ? sig(a) : '取消'; rows.push([n, v, note, WHO, now]); saveLocal(); } catch(e){ fail++; }
+    await new Promise(r=>setTimeout(r,200));
   }
-  if(rows.length) downloadCsv(rows);
-  modal.innerHTML = `<div class="gatebox"><div class="eyebrow">${fail?'部分未送出':'送出完成'}</div><h2>${fail?`已送出 ${ok} 筆，${fail} 筆失敗`:`已送出 ${ok} 筆回報，謝謝您！`}</h2>
-    <p>${fail?'失敗的項目仍標示「尚未送出」，請確認網路後再按一次「送出回報」。':'本次內容也已下載成 CSV 備份檔。之後若想到其他人，可以回到這頁繼續選擇後再送出，只會送出新增或修改的部分。'}</p>
+  step();
+  const rc = recCount();
+  try{ await postOne('（已看完全部 '+ALLP.length+' 人）', '完成確認', '本次共推薦 '+rc+' 人：'+Object.keys(MINE).join('、')); ok++; rows.push(['（已看完全部 '+ALLP.length+' 人）','完成確認','共推薦 '+rc+' 人',WHO,now]); if(!fail){ SENT.__done = 1; saveLocal(); } } catch(e){ fail++; }
+  downloadCsv(rows);
+  modal.innerHTML = `<div class="gatebox"><div class="eyebrow">${fail?'部分未送出':'送出完成'}</div><h2>${fail?`有 ${fail} 筆失敗`:`已送出，共推薦 ${rc} 人，謝謝您！`}</h2>
+    <p>${fail?'失敗的項目仍標示「尚未送出」，請確認網路後再按一次「送出回報」。':'本次內容也已下載成 CSV 備份檔。之後若想增減推薦，可以回到這頁修改後再送出，只會送出變動的部分。'}</p>
     <button class="primary" data-closemodal>我知道了，關閉</button></div>`;
   rerender();
 }
@@ -286,13 +327,35 @@ function rerender(){
   if(false){ pendingRender = true; return; }
   pendingRender = false;
   const sy = window.scrollY;
-  if(mode==='term' && typeof current==='number') renderTerm(current);
+  if(mode==='task') renderTask();
+  else if(mode==='term' && typeof current==='number') renderTerm(current);
   else if(mode==='person') main.innerHTML = personPanel(personName);
   renderNav(); renderTop(); window.scrollTo({top:sy});
 }
+function renderTask(){
+  mode = 'task';
+  const g = GROUPS[gidx], lab = g.label, rev = !!REV[lab];
+  const gbtn = GROUPS.map((x,i)=>{ const c=x.names.filter(n=>MINE[n]).length; return `<button data-g="${i}" aria-pressed="${i===gidx}" class="${REV[x.label]?'full':''}">${REV[x.label]?'✓ ':''}${esc(x.label)}（${x.names.length}人${c?`，勾 ${c}`:''}）</button>`; }).join('');
+  const names = g.names.filter(n=>!todoOnly || MINE[n]);
+  const off = GROUPS.slice(0,gidx).reduce((a,x)=>a+x.names.length,0);
+  const rows = names.map(n=>{ const p=PINFO[n]; const k=g.names.indexOf(n);
+    return `<tr class="${MINE[n]?'rec':''}" id="p_${esc(n)}"><td class="idx">${off+k+1}</td><td class="pname">${esc(n)}</td><td class="choice">${radioCell(n)}</td><td class="terms">${esc(p.terms.join('、'))}</td><td class="pedu">${p.edu==='待查'?'<span class="pend">待查</span>':esc(p.edu.replace(/／/g,'；'))}</td></tr>`; }).join('');
+  const left = unreviewed().length;
+  main.innerHTML = `<section class="taskhead">
+      <h2 style="font-family:var(--f-display);font-size:26px;margin:0">推薦訪談名單</h2>
+      <div class="note">名單共 <b>${ALLP.length}</b> 位（同一人在多屆任職只列一次），依最早出現的屆次分成 ${GROUPS.length} 組。請勾選<b>您推薦我們訪談</b>的人，可附上推薦理由或聯絡方式。每組看完後按「本組已看完」，<b>${GROUPS.length} 組都看完才能送出</b>，以確保每一位都看過。</div>
+      <div class="groupbar" aria-label="分組">${gbtn}</div>
+      <div class="filters"><button data-todo="0" aria-pressed="${!todoOnly}">本組全部 ${g.names.length} 人</button><button data-todo="1" aria-pressed="${todoOnly}">只看本組已勾</button><span class="toast" id="toast" aria-live="polite"></span></div>
+    </section>
+    <div class="tablewrap"><table><thead><tr><th>#</th><th>姓名</th><th>勾選</th><th>任職紀錄</th><th>整理檔學歷</th></tr></thead><tbody>${rows||'<tr><td colspan="5" class="pend">本組沒有勾選的人。</td></tr>'}</tbody></table></div>
+    <div class="filters" style="justify-content:space-between;align-items:center">${gidx>0?`<button data-g="${gidx-1}">← 上一組</button>`:'<span></span>'}
+      <button class="revbtn ${rev?'on':''}" data-rev>${rev?`✓ ${esc(lab)} 已看完`:`本組（${esc(lab)}）已看完 ✓`}</button>
+      ${gidx<GROUPS.length-1?`<button data-g="${gidx+1}">下一組 →</button>`:'<span></span>'}</div>
+    <p class="count">${left?`還有 ${left} 組未看完。`:`${GROUPS.length} 組都已看完，可以按下方「送出回報」。`}</p>`;
+}
 function renderNav(){
   const groups = [['現行與近屆',t=>/^第十/.test(t.short)],['第二至九屆',t=>/^第[二三四五六七八九]屆/.test(t.short)],['改制前（民國 64–81 年）',t=>/^改制前/.test(t.short)]];
-  let html = `<button data-view="pres" aria-current="${current==='pres'}"><span>歷任理事長</span><span class="pres"></span></button>`;
+  let html = `<button data-view="task" aria-current="${current==='task'}" class="navtask"><span>✎ 推薦訪談名單</span><span class="pres">${GROUPS.length-unreviewed().length}/${GROUPS.length} 組</span></button><div class="grp">參考：各屆名單</div><button data-view="pres" aria-current="${current==='pres'}"><span>歷任理事長</span><span class="pres"></span></button>`;
   for (const [g,fn] of groups){
     html += `<div class="grp">${g}</div>`;
     for (const t of terms.filter(fn)) html += `<button data-term="${t.i}" aria-current="${current===t.i}"><span><i class="dot" style="background:${statusColor(t.status)}"></i>${esc(t.short)}</span><span class="pres">${esc(t.pres)}${repCount(t)?`<span class="ckc">${repCount(t)}/${peopleIn(t)}</span>`:''}</span></button>`;
@@ -318,7 +381,7 @@ function renderTerm(i){
     const brk = prevRole!==null && r[0]!==prevRole && !r[0].startsWith(prevRole); prevRole=r[0];
     const edu = r[2]==='待查' ? '<span class="pend">待查</span>' : r[2].split('／').map(x=>`<div>${srcLink(x)}</div>`).join('');
     const pk = pathKey(r[3]);
-    return `<tr class="${brk?'rolebreak':''}${MINE[r[1]]?' mine':''}"><td class="role">${esc(r[0])}</td><td class="name"><button data-person="${esc(r[1])}">${esc(r[1])}</button></td><td class="edu">${edu}</td><td><span class="chip p-${pk==='other'?'other':pk}">${esc(r[3])}</span></td><td class="rep">${repCell(r[1])}</td><td class="note">${srcLink(r[4]||'')}</td></tr>`;
+    return `<tr class="${brk?'rolebreak':''}${MINE[r[1]]?' mine':''}"><td class="role">${esc(r[0])}</td><td class="name"><button data-person="${esc(r[1])}">${esc(r[1])}</button></td><td class="rep choice">${repCell(r[1])}</td><td class="edu">${edu}</td><td><span class="chip p-${pk==='other'?'other':pk}">${esc(r[3])}</span></td><td class="note">${srcLink(r[4]||'')}</td></tr>`;
   }).join('');
   const fbtn = ['all','中醫系','後中','特考','other','pend'].map(k=>`<button data-filter="${k}" aria-pressed="${filter===k}">${k==='all'?'全部':pathLabel[k]}</button>`).join('');
   main.innerHTML = `<section class="termhead">
@@ -329,8 +392,8 @@ function renderTerm(i){
     ${t.rows.length>3?pathBar(t.rows):''}
     ${repBar(t)}
     ${t.rows.length>3?`<div class="filters" aria-label="依取得途徑篩選">${fbtn}</div>`:''}
-    <div class="tablewrap"><table><thead><tr><th>職位</th><th>姓名</th><th>學歷</th><th>取得途徑（整理）</th><th>回報：特考或大學？</th><th>備註</th></tr></thead><tbody>${body||'<tr><td colspan="6" class="pend">此篩選下沒有人。</td></tr>'}</tbody></table></div>
-    <p class="count">點姓名可看此人歷屆任職。選擇會先存在這台電腦，按「送出回報」才會傳給研究團隊。</p>`;
+    <div class="tablewrap"><table><thead><tr><th>職位</th><th>姓名</th><th>勾選</th><th>學歷</th><th>取得途徑（整理）</th><th>備註</th></tr></thead><tbody>${body||'<tr><td colspan="6" class="pend">此篩選下沒有人。</td></tr>'}</tbody></table></div>
+    <p class="count">點姓名可看此人歷屆任職。勾選會先存在這台電腦，按「送出回報」才會傳給研究團隊。</p>`;
 }
 
 function renderPres(){
@@ -362,9 +425,9 @@ function personPanel(name){
 
 function show(view){
   current = view; mode = typeof view==='number' ? 'term' : view;
-  if(view==='pres') renderPres(); else if(view==='sources') renderSources(); else renderTerm(view);
+  if(view==='task') renderTask(); else if(view==='pres') renderPres(); else if(view==='sources') renderSources(); else renderTerm(view);
   renderNav();
-  try{ localStorage.setItem('tm_view', String(view)); }catch(e){}
+
 }
 
 function search(q){
@@ -391,16 +454,22 @@ document.addEventListener('click', async e=>{
   }
   else if(b.hasAttribute('data-export')){ exportXlsx(); }
   else if(b.hasAttribute('data-submit')){ submitAll(); }
+  else if(b.hasAttribute('data-rev')){ const lab=GROUPS[gidx].label; if(REV[lab]) delete REV[lab]; else { REV[lab]=1; } delete SENT.__done; saveLocal(); if(REV[lab] && gidx<GROUPS.length-1 && !REV[GROUPS[gidx+1].label]){ gidx++; todoOnly=false; window.scrollTo({top:0}); } rerender(); }
+  else if(b.dataset.g!==undefined){ gidx=+b.dataset.g; todoOnly=false; renderTask(); window.scrollTo({top:0}); }
+  else if(b.dataset.todo!==undefined){ todoOnly = b.dataset.todo==='1'; renderTask(); }
+  else if(b.hasAttribute('data-nexttodo')){ const i = unreviewed()[0]; if(i===undefined) return; gidx=i; todoOnly=false; current='task'; document.getElementById('q').value=''; renderTask(); renderNav(); window.scrollTo({top:0}); }
   else if(b.hasAttribute('data-closemodal')){ document.getElementById('modal').hidden = true; }
   else if(b.hasAttribute('data-rename')){ openGate(); }
   else if(b.dataset.person){ mode='person'; personName=b.dataset.person; main.innerHTML = personPanel(b.dataset.person); window.scrollTo({top:0}); }
   else if(b.hasAttribute('data-close')){ show(current); }
 });
 document.addEventListener('change', e=>{
+  const cb = e.target.closest('input[type=checkbox][data-rec]');
+  if(cb){ const n=cb.dataset.name; if(cb.checked) MINE[n] = {note:(MINE[n]&&MINE[n].note)||''}; else delete MINE[n]; delete SENT.__done; saveLocal(); rerender(); return; }
   const inp = e.target.closest('input[data-note]'); if(!inp) return;
   const n = inp.dataset.note; if(!MINE[n]) return;
   const v = inp.value.trim().slice(0,200); if(v===(MINE[n].note||'')) return;
-  MINE[n].note = v; saveLocal(); rerender();
+  MINE[n].note = v; delete SENT.__done; saveLocal(); rerender();
 });
 document.addEventListener('focusout', e=>{ if(e.target.classList && e.target.classList.contains('rnote')) setTimeout(()=>{ if(pendingRender) rerender(); },0); });
 
@@ -438,8 +507,7 @@ async function exportXlsx(){
 }
 document.getElementById('q').addEventListener('input', e=>search(e.target.value));
 
-let start = 0;
-try{ const v = localStorage.getItem('tm_view'); if(v==='pres'||v==='sources') start=v; else if(v!==null && terms[+v]) start=+v; }catch(e){}
+let start = 'task';
 show(start);
 
 dbState='ready'; rerender();
@@ -448,7 +516,7 @@ function openGate(){ gate.hidden = false; gname.value = WHO; genter.disabled = !
 gname.addEventListener('input', ()=>{ genter.disabled = !gname.value.trim(); });
 gname.addEventListener('keydown', e=>{ if(e.key==='Enter' && gname.value.trim()) genter.click(); });
 genter.addEventListener('click', ()=>{ WHO = gname.value.trim().slice(0,60); saveLocal(); gate.hidden = true; rerender(); });
-window.addEventListener('beforeunload', e=>{ if(pendingList().length){ e.preventDefault(); e.returnValue=''; } });
+window.addEventListener('beforeunload', e=>{ if(pendingList().length || (recCount() && !SENT.__done)){ e.preventDefault(); e.returnValue=''; } });
 if(!WHO) openGate();
 </script>
 
