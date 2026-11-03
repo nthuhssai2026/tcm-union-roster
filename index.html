@@ -214,7 +214,7 @@ footer{font-size:12.5px;color:var(--muted);border-top:1px solid var(--line);padd
   <div class="gatebox">
     <div class="eyebrow">推薦訪談名單</div>
     <h2>中醫師公會全國聯合會歷屆理監事：推薦訪談名單</h2>
-    <p>本研究整理了全聯會歷屆理監事共 235 位，想請您協助推薦適合訪談的人選。請逐組瀏覽名單，勾選您推薦的人（可附推薦理由或聯絡方式），每組看完按「本組已看完」，全部看完後一次送出。</p>
+    <p>本研究整理了全聯會歷屆理監事共 235 位，想請您協助推薦適合訪談的人選。請逐組瀏覽名單，勾選您推薦的人，並點選他是「特考」或「大學學歷」（可附推薦理由或聯絡方式），每組看完按「本組已看完」，全部看完後一次送出。</p>
     <p>請先填您的姓名，推薦會連同姓名一併送出，方便研究團隊需要時向您確認。</p>
     <label for="gname" style="font-weight:600">您的姓名</label>
     <input id="gname" maxlength="60" autocomplete="name" placeholder="例：王小明">
@@ -244,7 +244,7 @@ let current = 0, filter = 'all', rfilter = 'all', mode = 'term', personName = ''
 let DB = null, USER = null, DL = null, MYID = null, CANW = null, IS_OWNER = false;
 let REP = {}, MINE = {}, dbState = 'init', gotMine = false, pendingRender = false;
 let writeChain = Promise.resolve();
-const OPTS = {exam:'特考', univ:'大學學歷', unk:'不確定'};
+const OPTS = {exam:'特考', univ:'大學學歷'};
 function agg(name){ let e=0,u=0; for(const id in REP){ const p=REP[id]&&REP[id].picks&&REP[id].picks[name]; if(p){ if(p.v==='exam')e++; else if(p.v==='univ')u++; } } return {e,u}; }
 const hasRep = n => !!MINE[n];
 const repCount = t => new Set(t.rows.filter(r=>hasRep(r[1])).map(r=>r[1])).size;
@@ -260,15 +260,17 @@ const ALLP = [...new Set(terms.flatMap(t=>t.rows.map(r=>r[1])))];
 const PINFO = {}; terms.forEach(t=>t.rows.forEach(r=>{ const p = PINFO[r[1]] || (PINFO[r[1]] = {first:t.i, terms:[], edu:r[2], path:r[3]}); p.terms.push(t.short.replace('改制前','前')+r[0].replace(/^(理事長|副理事長|常務理事|理事|監事會召集人|監事長|常務監事|監事|秘書長|副秘書長).*$/,'·$1')); }));
 const GROUPS = []; { const seen=new Set(); terms.forEach(t=>{ const ns=t.rows.map(r=>r[1]).filter(n=>!seen.has(n)); ns.forEach(n=>seen.add(n)); if(ns.length) GROUPS.push({label:t.short, names:[...new Set(ns)]}); }); }
 let gidx = 0, todoOnly = false;
-const sig = a => a ? '推薦|'+(a.note||'') : '';
+const sig = a => a ? '推薦|'+(a.v||'')+'|'+(a.note||'') : '';
 const pendingList = () => Object.keys(MINE).filter(n=>sig(MINE[n])!==SENT[n]).concat(Object.keys(SENT).filter(n=>n!=='__done' && !MINE[n] && SENT[n]!=='取消'));
 const recCount = () => Object.keys(MINE).length;
+const noPath = () => Object.keys(MINE).filter(n=>!MINE[n].v);
 const unreviewed = () => GROUPS.map((g,i)=>i).filter(i=>!REV[GROUPS[i].label]);
 function radioCell(n){
   const my = MINE[n];
-  const st = my ? (SENT[n]===sig(my) ? '<div class="tally"><span class="okmark">✓ 已送出</span></div>' : '<div class="tally">已勾，尚未送出</div>') : (SENT[n] && SENT[n]!=='取消' ? '<div class="tally">已取消，送出後撤回</div>' : '');
+  const st = my ? (!my.v ? '<div class="tally" style="color:var(--seal)">請選「特考」或「大學學歷」</div>' : (SENT[n]===sig(my) ? '<div class="tally"><span class="okmark">✓ 已送出</span></div>' : '<div class="tally">已存，尚未送出</div>')) : (SENT[n] && SENT[n]!=='取消' ? '<div class="tally">已取消，送出後撤回</div>' : '');
+  const radios = my ? `<div class="radios" role="radiogroup" aria-label="${esc(n)} 的資格取得途徑" style="margin-top:6px">${Object.entries(OPTS).map(([k,l])=>`<label><input type="radio" name="r_${esc(n)}" data-pick="${k}" data-name="${esc(n)}" ${my.v===k?'checked':''}>${l}</label>`).join('')}</div>` : '';
   const note = my ? `<input class="rnote" data-note="${esc(n)}" value="${esc(my.note||'')}" placeholder="推薦理由或聯絡方式（可不填）" maxlength="200" aria-label="${esc(n)} 的推薦說明">` : '';
-  return `<label class="ckline"><input type="checkbox" data-rec data-name="${esc(n)}" ${my?'checked':''} aria-label="推薦訪談 ${esc(n)}"><span>推薦訪談</span></label>${st}${note}`;
+  return `<label class="ckline"><input type="checkbox" data-rec data-name="${esc(n)}" ${my?'checked':''} aria-label="推薦訪談 ${esc(n)}"><span>推薦訪談</span></label>${radios}${st}${note}`;
 }
 const repCell = radioCell;
 function repBar(t){
@@ -281,12 +283,13 @@ function renderTop(){
   document.getElementById('whobar').innerHTML = WHO ? `<span>回報者：<b>${esc(WHO)}</b></span><button class="linkbtn" data-rename>更改姓名</button>` : '';
   document.getElementById('stats').innerHTML = [['名單人數',ALLP.length],['已勾推薦',rc],['已看完組數',`${GROUPS.length-left}/${GROUPS.length}`],['完成度',Math.floor((GROUPS.length-left)/GROUPS.length*100)+'%']].map(([l,v])=>`<div class="stat"><span>${l}</span><b>${v}</b></div>`).join('');
   const sentAll = !pend && SENT.__done;
-  const msg = left ? `還有 <b style="color:var(--seal)">${left}</b> 組未看完，全部看完才能送出。` : (sentAll ? '回報已送出，可以關閉頁面。' : `${GROUPS.length} 組都已看完，共勾選 <b>${rc}</b> 人，可以送出。`);
-  document.getElementById('submitbar').innerHTML = `<span class="sbmsg">${msg}</span><span style="display:flex;gap:10px;flex-wrap:wrap">${left?'<button class="act" data-nexttodo>跳到下一組未看完 →</button>':''}<button class="primary" data-submit ${!left && !sentAll?'':'disabled'}>送出回報 ↓</button></span>`;
+  const np = noPath().length;
+  const msg = np ? `有 <b style="color:var(--seal)">${np}</b> 位已勾選但還沒選「特考／大學學歷」。` : left ? `還有 <b style="color:var(--seal)">${left}</b> 組未看完，全部看完才能送出。` : (sentAll ? '回報已送出，可以關閉頁面。' : `${GROUPS.length} 組都已看完，共勾選 <b>${rc}</b> 人，可以送出。`);
+  document.getElementById('submitbar').innerHTML = `<span class="sbmsg">${msg}</span><span style="display:flex;gap:10px;flex-wrap:wrap">${np?'<button class="act" data-nextnopath>跳到未選途徑的人 →</button>':(left?'<button class="act" data-nexttodo>跳到下一組未看完 →</button>':'')}<button class="primary" data-submit ${!left && !np && !sentAll?'':'disabled'}>送出回報 ↓</button></span>`;
 }
 function buildCsv(rows){
   const q = v => { const x = String(v==null?'':v); return /[",\n]/.test(x) ? '"'+x.replace(/"/g,'""')+'"' : x; };
-  return '﻿' + [['理監事姓名','回報內容','推薦說明','回報者','時間'], ...rows].map(r=>r.map(q).join(',')).join('\r\n');
+  return '﻿' + [['推薦訪談對象','資格取得途徑','推薦說明','回報者','時間'], ...rows].map(r=>r.map(q).join(',')).join('\r\n');
 }
 function downloadCsv(rows){
   try{
@@ -301,7 +304,7 @@ async function postOne(n, v, note){
   await fetch(FORM, {method:'POST', mode:'no-cors', body});
 }
 async function submitAll(){
-  if(unreviewed().length) return;
+  if(unreviewed().length || noPath().length) return;
   const list = pendingList();
   const modal = document.getElementById('modal'); modal.hidden = false;
   const now = new Date().toLocaleString('zh-TW',{hour12:false});
@@ -309,16 +312,16 @@ async function submitAll(){
   const step = () => { modal.innerHTML = `<div class="gatebox"><h2>送出中…</h2><p>${ok+fail} / ${total}</p><div class="prog2"><span style="width:${(ok+fail)/total*100}%"></span></div></div>`; };
   for(const n of list){
     step();
-    const a = MINE[n], v = a ? '推薦訪談' : '取消推薦', note = a ? (a.note||'') : '';
+    const a = MINE[n], v = a ? OPTS[a.v] : '取消推薦', note = a ? (a.note||'') : '';
     try{ await postOne(n, v, note); ok++; SENT[n] = a ? sig(a) : '取消'; rows.push([n, v, note, WHO, now]); saveLocal(); } catch(e){ fail++; }
     await new Promise(r=>setTimeout(r,200));
   }
   step();
   const rc = recCount();
-  try{ await postOne('（已看完全部 '+ALLP.length+' 人）', '完成確認', '本次共推薦 '+rc+' 人：'+Object.keys(MINE).join('、')); ok++; rows.push(['（已看完全部 '+ALLP.length+' 人）','完成確認','共推薦 '+rc+' 人',WHO,now]); if(!fail){ SENT.__done = 1; saveLocal(); } } catch(e){ fail++; }
+  try{ await postOne('（已看完全部 '+ALLP.length+' 人）', '完成確認', '本次共推薦 '+rc+' 人：'+Object.keys(MINE).map(n=>n+'（'+OPTS[MINE[n].v]+'）').join('、')); ok++; rows.push(['（已看完全部 '+ALLP.length+' 人）','完成確認','共推薦 '+rc+' 人',WHO,now]); if(!fail){ SENT.__done = 1; saveLocal(); } } catch(e){ fail++; }
   downloadCsv(rows);
   modal.innerHTML = `<div class="gatebox"><div class="eyebrow">${fail?'部分未送出':'送出完成'}</div><h2>${fail?`有 ${fail} 筆失敗`:`已送出，共推薦 ${rc} 人，謝謝您！`}</h2>
-    <p>${fail?'失敗的項目仍標示「尚未送出」，請確認網路後再按一次「送出回報」。':'本次內容也已下載成 CSV 備份檔。之後若想增減推薦，可以回到這頁修改後再送出，只會送出變動的部分。'}</p>
+    <p>${fail?'失敗的項目仍標示「尚未送出」，請確認網路後再按一次「送出回報」。':'本次內容也已下載成 CSV 備份檔。之後若想增減或修改推薦，可以回到這頁修改後再送出，只會送出變動的部分。'}</p>
     <button class="primary" data-closemodal>我知道了，關閉</button></div>`;
   rerender();
 }
@@ -343,7 +346,7 @@ function renderTask(){
   const left = unreviewed().length;
   main.innerHTML = `<section class="taskhead">
       <h2 style="font-family:var(--f-display);font-size:26px;margin:0">推薦訪談名單</h2>
-      <div class="note">名單共 <b>${ALLP.length}</b> 位（同一人在多屆任職只列一次），依最早出現的屆次分成 ${GROUPS.length} 組。請勾選<b>您推薦我們訪談</b>的人，可附上推薦理由或聯絡方式。每組看完後按「本組已看完」，<b>${GROUPS.length} 組都看完才能送出</b>，以確保每一位都看過。</div>
+      <div class="note">名單共 <b>${ALLP.length}</b> 位（同一人在多屆任職只列一次），依最早出現的屆次分成 ${GROUPS.length} 組。請勾選<b>您推薦我們訪談</b>的人，並選擇此人的中醫師資格是「特考」或「大學學歷」，可附上推薦理由或聯絡方式。每組看完後按「本組已看完」，<b>${GROUPS.length} 組都看完才能送出</b>，以確保每一位都看過。</div>
       <div class="groupbar" aria-label="分組">${gbtn}</div>
       <div class="filters"><button data-todo="0" aria-pressed="${!todoOnly}">本組全部 ${g.names.length} 人</button><button data-todo="1" aria-pressed="${todoOnly}">只看本組已勾</button><span class="toast" id="toast" aria-live="polite"></span></div>
     </section>
@@ -454,6 +457,7 @@ document.addEventListener('click', async e=>{
   }
   else if(b.hasAttribute('data-export')){ exportXlsx(); }
   else if(b.hasAttribute('data-submit')){ submitAll(); }
+  else if(b.hasAttribute('data-nextnopath')){ const n = noPath()[0]; if(!n) return; gidx = GROUPS.findIndex(g=>g.names.includes(n)); todoOnly=false; current='task'; document.getElementById('q').value=''; renderTask(); renderNav(); const el=document.getElementById('p_'+n); if(el){ el.scrollIntoView({block:'center'}); el.classList.add('flash'); } }
   else if(b.hasAttribute('data-rev')){ const lab=GROUPS[gidx].label; if(REV[lab]) delete REV[lab]; else { REV[lab]=1; } delete SENT.__done; saveLocal(); if(REV[lab] && gidx<GROUPS.length-1 && !REV[GROUPS[gidx+1].label]){ gidx++; todoOnly=false; window.scrollTo({top:0}); } rerender(); }
   else if(b.dataset.g!==undefined){ gidx=+b.dataset.g; todoOnly=false; renderTask(); window.scrollTo({top:0}); }
   else if(b.dataset.todo!==undefined){ todoOnly = b.dataset.todo==='1'; renderTask(); }
@@ -464,8 +468,10 @@ document.addEventListener('click', async e=>{
   else if(b.hasAttribute('data-close')){ show(current); }
 });
 document.addEventListener('change', e=>{
+  const rb = e.target.closest('input[type=radio][data-pick]');
+  if(rb){ const n=rb.dataset.name; if(MINE[n]){ MINE[n].v = rb.dataset.pick; delete SENT.__done; saveLocal(); rerender(); } return; }
   const cb = e.target.closest('input[type=checkbox][data-rec]');
-  if(cb){ const n=cb.dataset.name; if(cb.checked) MINE[n] = {note:(MINE[n]&&MINE[n].note)||''}; else delete MINE[n]; delete SENT.__done; saveLocal(); rerender(); return; }
+  if(cb){ const n=cb.dataset.name; if(cb.checked) MINE[n] = {v:'', note:''}; else delete MINE[n]; delete SENT.__done; saveLocal(); rerender(); return; }
   const inp = e.target.closest('input[data-note]'); if(!inp) return;
   const n = inp.dataset.note; if(!MINE[n]) return;
   const v = inp.value.trim().slice(0,200); if(v===(MINE[n].note||'')) return;
